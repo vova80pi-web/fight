@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Говно</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #141414; color: #ddd; padding: 20px;
+  max-width: 1000px; margin: auto; min-height: 100vh;
+}
+h1 { color: #e74c3c; text-align: center; letter-spacing: 3px; font-size: 42px; margin-top: 40px; }
+h2 { color: #e74c3c; text-align: center; letter-spacing: 2px; font-size: 26px; margin-top: 20px; }
+.subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 14px; letter-spacing: 1px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.music-toggle {
+  position: fixed; top: 15px; right: 15px;
+  background: rgba(0,0,0,0.6); color: #fff;
+  border: 1px solid #555; border-radius: 50%;
+  width: 45px; height: 45px; font-size: 20px;
+  cursor: pointer; z-index: 1000; transition: .2s;
+}
+.music-toggle:hover { background: rgba(231,76,60,0.8); }
+
+#menu {
+  text-align: center; padding: 80px 20px;
+  background-image: url('ааа.jpg');
+  background-size: cover; background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh; margin: -20px;
+}
+#menu h1 { color: #e74c3c; text-shadow: 2px 2px 8px #000; }
+.menu-btn {
+  background: #e74c3c; color: #fff; border: none;
+  padding: 20px 60px; font-size: 22px; border-radius: 10px;
+  cursor: pointer; letter-spacing: 2px; transition: .2s; margin-top: 40px;
+}
+.menu-btn:hover { background: #c0392b; transform: scale(1.05); }
+
+.stat-block { background: #1c1c1c; padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
+.stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.stat-name { font-size: 18px; font-weight: bold; }
+.stat-name.sila { color: #e74c3c; }
+.stat-name.lovk { color: #2ecc71; }
+.stat-name.intel { color: #3498db; }
+.stat-value { font-size: 24px; font-weight: bold; color: #f1c40f; font-family: monospace; }
+input[type="range"] {
+  width: 100%; height: 8px; background: #333; border-radius: 4px;
+  outline: none; -webkit-appearance: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: #e74c3c; cursor: pointer; border: 2px solid #fff;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #e74c3c; cursor: pointer; border: 2px solid #fff;
+}
+.range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-top: 5px; }
+.total-info { text-align: center; color: #888; margin: 20px 0; font-size: 14px; }
+.total-info b { color: #f1c40f; font-size: 18px; }
+
+.main-choice { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
+.choice-card {
+  flex: 1; min-width: 200px; background: #1c1c1c; border: 3px solid #333;
+  border-radius: 10px; padding: 25px; cursor: pointer; text-align: center; transition: .2s;
+}
+.choice-card:hover { border-color: #666; transform: translateY(-3px); }
+.choice-card.selected { border-color: #f1c40f; box-shadow: 0 0 20px rgba(241,196,15,.4); }
+.choice-card .icon { font-size: 40px; margin-bottom: 10px; }
+.choice-card .name { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
+.choice-card .desc { font-size: 12px; color: #888; line-height: 1.5; }
+.choice-card.sila .name { color: #e74c3c; }
+.choice-card.lovk .name { color: #2ecc71; }
+.choice-card.intel .name { color: #3498db; }
+
+.nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 10px; }
+.nav-btn {
+  background: #333; color: #fff; border: none; padding: 14px 30px;
+  font-size: 16px; border-radius: 8px; cursor: pointer; transition: .2s;
+}
+.nav-btn:hover { background: #444; }
+.nav-btn.primary { background: #e74c3c; }
+.nav-btn.primary:hover { background: #c0392b; }
+.nav-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+
+.summary { background: #1c1c1c; padding: 25px; border-radius: 10px; border: 2px solid #f1c40f; margin-top: 20px; }
+.summary h3 { margin-top: 0; color: #f1c40f; }
+.summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
+.summary-row:last-child { border-bottom: none; }
+.summary-row span:last-child { color: #f1c40f; font-family: monospace; font-weight: bold; }
+
+.battle-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+.fighter { flex: 1; min-width: 280px; background: #222; padding: 15px; border-radius: 10px; border: 2px solid #333; transition: .2s; }
+.fighter.active { border-color: #e74c3c; box-shadow: 0 0 15px rgba(231,76,60,.4); }
+.fighter.dead { opacity: .4; filter: grayscale(1); }
+.fighter h3 { margin: 0 0 10px; font-size: 18px; }
+.fighter.p1 h3 { color: #3498db; }
+.fighter.p2 h3 { color: #e67e22; }
+.bar { background: #333; height: 18px; border-radius: 9px; overflow: hidden; margin: 5px 0 10px; }
+.bar .fill { height: 100%; transition: width .4s; background: #2ecc71; }
+.bar.hp.low .fill { background: #f39c12; }
+.bar.hp.crit .fill { background: #e74c3c; }
+.bar.sta .fill { background: #3498db; }
+.stat-line { font-size: 13px; color: #aaa; display: flex; justify-content: space-between; }
+.stat-line b { color: #f1c40f; }
+.statuses { font-size: 12px; color: #e67e22; margin-top: 6px; min-height: 16px; }
+
+.turn-banner { text-align: center; padding: 12px; background: #222; border-radius: 8px; margin: 15px 0; font-size: 16px; border: 1px solid #333; }
+.controls { background: #1c1c1c; padding: 15px; border-radius: 10px; }
+.controls .group-title { font-size: 13px; color: #888; margin: 10px 0 5px; letter-spacing: 1px; }
+.controls button {
+  background: #e74c3c; color: #fff; border: none; padding: 9px 12px;
+  border-radius: 6px; cursor: pointer; margin: 3px 2px; font-size: 12px; transition: .15s;
+}
+.controls button:hover:not(:disabled) { background: #c0392b; }
+.controls button:disabled { background: #333; color: #666; cursor: not-allowed; }
+.controls button.ability-btn { background: #8e44ad; }
+.controls button.ability-btn:hover:not(:disabled) { background: #732d91; }
+
+.log { background: #0a0a0a; padding: 12px; border-radius: 8px; height: 240px; overflow-y: auto; font-size: 13px; line-height: 1.5; border: 1px solid #333; margin-top: 15px; }
+.log div { margin: 3px 0; }
+.hit { color: #2ecc71; }
+.miss { color: #e67e22; }
+.crit { color: #f1c40f; font-weight: bold; }
+.sys { color: #888; font-style: italic; }
+.fire { color: #e67e22; }
+.ice { color: #5dade2; }
+</style>
+</head>
+<body>
+
+<button class="music-toggle" id="musicBtn" onclick="toggleMusic()" title="Музыка">🔇</button>
+
+<div class="screen active" id="menu">
+  <h1>💩 ГОВНО</h1>
+  <div class="subtitle">Легендарная битва</div>
+  <button class="menu-btn" onclick="goToStats()">НАЧАТЬ ИГРУ</button>
+</div>
+
+<div class="screen" id="stats">
+  <h2>СОЗДАНИЕ ПЕРСОНАЖА</h2>
+  <div class="subtitle">Распредели характеристики (от 1 до 1000)</div>
+
+  <div class="stat-block">
+    <div class="stat-header">
+      <div class="stat-name sila">💪 СИЛА</div>
+      <div class="stat-value" id="val-sila">100</div>
+    </div>
+    <input type="range" min="1" max="1000" value="100" id="range-sila" oninput="updateStat('sila', this.value)">
+    <div class="range-labels"><span>1</span><span>1000</span></div>
+  </div>
+
+  <div class="stat-block">
+    <div class="stat-header">
+      <div class="stat-name lovk">🏃 ЛОВКОСТЬ</div>
+      <div class="stat-value" id="val-lovk">100</div>
+    </div>
+    <input type="range" min="1" max="1000" value="100" id="range-lovk" oninput="updateStat('lovk', this.value)">
+    <div class="range-labels"><span>1</span><span>1000</span></div>
+  </div>
+
+  <div class="stat-block">
+    <div class="stat-header">
+      <div class="stat-name intel">🧠 ИНТЕЛЛЕКТ</div>
+      <div class="stat-value" id="val-intel">100</div>
+    </div>
+    <input type="range" min="1" max="1000" value="100" id="range-intel" oninput="updateStat('intel', this.value)">
+    <div class="range-labels"><span>1</span><span>1000</span></div>
+  </div>
+
+  <div class="total-info">Сумма характеристик: <b id="total">300</b></div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToMenu()">← Назад</button>
+    <button class="nav-btn primary" onclick="goToMainChoice()">Далее →</button>
+  </div>
+</div>
+
+<div class="screen" id="mainChoice">
+  <h2>ОСНОВНАЯ ХАРАКТЕРИСТИКА</h2>
+  <div class="subtitle">Выбери одну. 1 единица = 1 к урону</div>
+
+  <div class="main-choice">
+    <div class="choice-card sila" id="choice-sila" onclick="selectMain('sila')">
+      <div class="icon">💪</div>
+      <div class="name">СИЛА</div>
+      <div class="desc">Урон: <span id="dmg-sila">100</span></div>
+    </div>
+    <div class="choice-card lovk" id="choice-lovk" onclick="selectMain('lovk')">
+      <div class="icon">🏃</div>
+      <div class="name">ЛОВКОСТЬ</div>
+      <div class="desc">Урон: <span id="dmg-lovk">100</span></div>
+    </div>
+    <div class="choice-card intel" id="choice-intel" onclick="selectMain('intel')">
+      <div class="icon">🧠</div>
+      <div class="name">МАГИЯ</div>
+      <div class="desc">Урон: <span id="dmg-intel">100</span></div>
+    </div>
+  </div>
+
+  <div id="summaryBlock" style="display:none">
+    <div class="summary">
+      <h3>📋 Итог персонажа</h3>
+      <div class="summary-row"><span>💪 Сила</span><span id="sum-sila">100</span></div>
+      <div class="summary-row"><span>🏃 Ловкость</span><span id="sum-lovk">100</span></div>
+      <div class="summary-row"><span>🧠 Интеллект</span><span id="sum-intel">100</span></div>
+      <div class="summary-row"><span>⭐ Основная характеристика</span><span id="sum-main">—</span></div>
+      <div class="summary-row"><span>⚔️ Урон</span><span id="sum-dmg">—</span></div>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStats()">← Назад</button>
+    <button class="nav-btn primary" id="btnConfirm" disabled onclick="goToAbilityChoice()">Далее →</button>
+  </div>
+</div>
+
+<div class="screen" id="abilityChoice">
+  <h2>ВЫБОР СПОСОБНОСТИ</h2>
+  <div class="subtitle">Выбери 1 способность для боя</div>
+
+  <div class="main-choice" id="abilityCards"></div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToMainChoice()">← Назад</button>
+    <button class="nav-btn primary" id="btnStartBattle" disabled onclick="startBattle()">Начать бой ✓</button>
+  </div>
+</div>
+
+<div class="screen" id="battle">
+  <h2>БОЙ</h2>
+
+  <div class="battle-row">
+    <div class="fighter p1" id="f1">
+      <h3>🛡️ Игрок 1</h3>
+      <div class="stat-line"><span>HP</span><span id="hp1"></span></div>
+      <div class="bar hp" id="hpbar1"><div class="fill" id="hpfill1"></div></div>
+      <div class="stat-line"><span>STA</span><span id="sta1"></span></div>
+      <div class="bar sta" id="stabar1"><div class="fill" id="stafill1"></div></div>
+      <div class="stat-line"><span>Урон: <b id="dmg1"></b></span><span>Основа: <b id="main1"></b></span></div>
+      <div class="statuses" id="status1"></div>
+    </div>
+    <div class="fighter p2" id="f2">
+      <h3>🗡️ Игрок 2</h3>
+      <div class="stat-line"><span>HP</span><span id="hp2"></span></div>
+      <div class="bar hp" id="hpbar2"><div class="fill" id="hpfill2"></div></div>
+      <div class="stat-line"><span>STA</span><span id="sta2"></span></div>
+      <div class="bar sta" id="stabar2"><div class="fill" id="stafill2"></div></div>
+      <div class="stat-line"><span>Урон: <b id="dmg2"></b></span><span>Основа: <b id="main2"></b></span></div>
+      <div class="statuses" id="status2"></div>
+    </div>
+  </div>
+
+  <div class="turn-banner" id="turnBanner">Ход Игрока 1</div>
+
+  <div class="controls" id="controls1" style="display:none">
+    <div class="group-title">ДЕЙСТВИЯ</div>
+    <button onclick="basicAttack(1)">🗡 Атака</button>
+    <button onclick="basicDodge(1)">💨 Уклонение</button>
+    <button onclick="basicRest(1)">😮‍💨 Передышка (+3 STA)</button>
+    <button class="ability-btn" id="abilityBtn1" onclick="useAbility(1)">—</button>
+  </div>
+
+  <div class="controls" id="controls2" style="display:none">
+    <div class="group-title">ДЕЙСТВИЯ</div>
+    <button onclick="basicAttack(2)">🗡 Атака</button>
+    <button onclick="basicDodge(2)">💨 Уклонение</button>
+    <button onclick="basicRest(2)">😮‍💨 Передышка (+3 STA)</button>
+    <button class="ability-btn" id="abilityBtn2" onclick="useAbility(2)">—</button>
+  </div>
+
+  <div class="controls" id="controlsEnd" style="display:none;text-align:center">
+    <b style="color:#f1c40f">🏁 Бой окончен</b><br><br>
+    <button onclick="location.reload()">🔄 Новый бой</button>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+var battleMusic = null;
+
+function playBattleMusic() {
+  if (!battleMusic) {
+    battleMusic = new Audio('1.mp3');
+    battleMusic.loop = true;
+    battleMusic.volume = 0.5;
+  }
+  battleMusic.play().catch(function(e) { console.log('Музыка не запустилась:', e); });
+  updateMusicButton();
+}
+
+function stopBattleMusic() {
+  if (battleMusic) {
+    battleMusic.pause();
+    battleMusic.currentTime = 0;
+  }
+  updateMusicButton();
+}
+
+function toggleMusic() {
+  if (!battleMusic) return;
+  if (battleMusic.paused) battleMusic.play();
+  else battleMusic.pause();
+  updateMusicButton();
+}
+
+function updateMusicButton() {
+  var btn = document.getElementById('musicBtn');
+  if (!btn) return;
+  if (battleMusic && !battleMusic.paused) btn.textContent = '🔊';
+  else btn.textContent = '🔇';
+}
+
+var abilities = {
+  sila: [
+    { id: 'strongHit', name: '💪 Сильный удар', desc: 'Урон ×1.5 от базового' },
+    { id: 'spinKick',  name: '🦵 Удар с разворота', desc: 'Урон + противник пропускает ход' },
+    { id: 'throwRock', name: '🪨 Бросок', desc: 'Бросок предмета или куска земли' }
+  ],
+  lovk: [
+    { id: 'combo',  name: '⚡ Серия ударов', desc: '3 удара по 0.5 урона' },
+    { id: 'dodgeAbility', name: '💨 Уклон', desc: 'Уклонение от атаки' },
+    { id: 'pierce', name: '🗡 Проникающий удар', desc: 'Игнорирует уклонение' }
+  ],
+  intel: [
+    { id: 'fireball', name: '🔥 Огненный фаербол', desc: 'Урон огнём' },
+    { id: 'freeze',   name: '❄️ Заморозка', desc: 'Противник пропускает ход' },
+    { id: 'iceball',  name: '🧊 Ледяной фаербол', desc: 'Урон льдом' }
+  ]
+};
+
+var character = { sila: 100, lovk: 100, intel: 100, mainStat: null, chosenAbility: null };
+var mainNames = { sila: '💪 Сила', lovk: '🏃 Ловкость', intel: '🧠 Магия' };
+
+function showScreen(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function goToMenu() { showScreen('menu'); }
+
+function goToStats() {
+  showScreen('stats');
+  updateTotal();
+}
+
+function goToMainChoice() {
+  document.getElementById('dmg-sila').textContent = character.sila;
+  document.getElementById('dmg-lovk').textContent = character.lovk;
+  document.getElementById('dmg-intel').textContent = character.intel;
+  showScreen('mainChoice');
+}
+
+function updateStat(name, value) {
+  value = parseInt(value);
+  character[name] = value;
+  document.getElementById('val-' + name).textContent = value;
+  updateTotal();
+}
+
+function updateTotal() {
+  document.getElementById('total').textContent = character.sila + character.lovk + character.intel;
+}
+
+function selectMain(stat) {
+  character.mainStat = stat;
+  character.chosenAbility = null;
+  var cards = document.querySelectorAll('.choice-card');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
+  document.getElementById('choice-' + stat).classList.add('selected');
+
+  document.getElementById('sum-sila').textContent = character.sila;
+  document.getElementById('sum-lovk').textContent = character.lovk;
+  document.getElementById('sum-intel').textContent = character.intel;
+  document.getElementById('sum-main').textContent = mainNames[stat];
+  document.getElementById('sum-dmg').textContent = character[stat];
+  document.getElementById('summaryBlock').style.display = 'block';
+  document.getElementById('btnConfirm').disabled = false;
+}
+
+function goToAbilityChoice() {
+  var container = document.getElementById('abilityCards');
+  container.innerHTML = '';
+  var list = abilities[character.mainStat];
+
+  for (var i = 0; i < list.length; i++) {
+    (function(ab) {
+      var card = document.createElement('div');
+      card.className = 'choice-card ' + character.mainStat;
+      card.id = 'ability-' + ab.id;
+      card.innerHTML = '<div class="name">' + ab.name + '</div><div class="desc">' + ab.desc + '</div>';
+      card.onclick = function() { selectAbility(ab.id); };
+      container.appendChild(card);
+    })(list[i]);
+  }
+  document.getElementById('btnStartBattle').disabled = true;
+  showScreen('abilityChoice');
+}
+
+function selectAbility(id) {
+  character.chosenAbility = id;
+  var cards = document.querySelectorAll('#abilityCards .choice-card');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
+  document.getElementById('ability-' + id).classList.add('selected');
+  document.getElementById('btnStartBattle').disabled = false;
+}
+
+var battle = { turn: 1, round: 1, over: false, p1: null, p2: null };
+
+function makeFighter() {
+  return {
+    hp: 500, maxhp: 500,
+    sta: 10, maxsta: 10,
+    dmg: character[character.mainStat],
+    main: mainNames[character.mainStat],
+    dodging: false, frozen: false
+  };
+}
+
+function startBattle() {
+  showScreen('battle');
+  playBattleMusic();
+  battle.turn = 1;
+  battle.round = 1;
+  battle.over = false;
+  battle.p1 = makeFighter();
+  battle.p2 = makeFighter();
+  document.getElementById('log').innerHTML = '';
+
+  var list = abilities[character.mainStat];
+  var chosen = null;
+  for (var i = 0; i < list.length; i++) if (list[i].id === character.chosenAbility) chosen = list[i];
+  var label = chosen ? chosen.name : '—';
+  document.getElementById('abilityBtn1').textContent = label;
+  document.getElementById('abilityBtn2').textContent = label;
+
+  log('Бой начался! Первым ходит Игрок 1.', 'sys');
+  log('Способность: ' + label, 'sys');
+  updateUI();
+}
+
+function roll(s) { return Math.floor(Math.random() * (s || 20)) + 1; }
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.innerHTML = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function P(i) { return i === 1 ? battle.p1 : battle.p2; }
+function enemyOf(i) { return i === 1 ? battle.p2 : battle.p1; }
+
+function updateUI() {
+  for (var i = 1; i <= 2; i++) {
+    var p = P(i);
+    document.getElementById('hp' + i).textContent = p.hp + '/' + p.maxhp;
+    document.getElementById('sta' + i).textContent = p.sta + '/' + p.maxsta;
+    document.getElementById('dmg' + i).textContent = p.dmg;
+    document.getElementById('main' + i).textContent = p.main;
+    var hpPct = p.hp / p.maxhp * 100;
+    document.getElementById('hpfill' + i).style.width = hpPct + '%';
+    document.getElementById('hpbar' + i).className = 'bar hp' + (hpPct <= 25 ? ' crit' : hpPct <= 50 ? ' low' : '');
+    document.getElementById('stafill' + i).style.width = (p.sta / p.maxsta * 100) + '%';
+
+    var statuses = [];
+    if (p.dodging) statuses.push('💨 Уклонение');
+    if (p.frozen) statuses.push('❄️ Заморожен');
+    document.getElementById('status' + i).textContent = statuses.length ? statuses.join(' · ') : '';
+
+    document.getElementById('f' + i).className = 'fighter p' + i +
+      (battle.turn === i && !battle.over ? ' active' : '') +
+      (p.hp <= 0 ? ' dead' : '');
+  }
+
+  document.getElementById('controls1').style.display = (battle.turn === 1 && !battle.over) ? 'block' : 'none';
+  document.getElementById('controls2').style.display = (battle.turn === 2 && !battle.over) ? 'block' : 'none';
+  document.getElementById('controlsEnd').style.display = battle.over ? 'block' : 'none';
+
+  if (battle.over) document.getElementById('turnBanner').innerHTML = '🏁 Бой окончен';
+  else document.getElementById('turnBanner').innerHTML = '🎯 Ход Игрока ' + battle.turn + ' · Раунд ' + battle.round;
+}
+
+function checkEnd() {
+  if (battle.p1.hp <= 0 || battle.p2.hp <= 0) {
+    battle.over = true;
+    stopBattleMusic();
+    var w = null;
+    if (battle.p1.hp <= 0 && battle.p2.hp <= 0) w = null;
+    else if (battle.p1.hp <= 0) w = 2;
+    else w = 1;
+    log(w ? '🏆 <b>Игрок ' + w + ' побеждает!</b>' : '⚖️ <b>Ничья!</b>', 'crit');
+    updateUI();
+    return true;
+  }
+  return false;
+}
+
+function nextTurn() {
+  if (checkEnd()) return;
+  battle.turn = battle.turn === 1 ? 2 : 1;
+  P(battle.turn).dodging = false;
+
+  if (P(battle.turn).frozen) {
+    log('❄️ Игрок ' + battle.turn + ' пропускает ход (заморозка)', 'ice');
+    P(battle.turn).frozen = false;
+    battle.turn = battle.turn === 1 ? 2 : 1;
+  }
+
+  if (battle.turn === 1) {
+    battle.round++;
+    for (var i = 1; i <= 2; i++) P(i).sta = Math.min(P(i).maxsta, P(i).sta + 2);
+    log('--- Раунд ' + battle.round + ' ---', 'sys');
+  }
+  updateUI();
+}
+
+function spend(i, n) {
+  var p = P(i);
+  if (p.sta < n) { log('❌ Не хватает STA', 'sys'); return false; }
+  p.sta -= n;
+  return true;
+}
+
+function applyDamage(target, dmg) {
+  target.hp = Math.max(0, target.hp - dmg);
+}
+
+function basicAttack(id) {
+  if (battle.over || battle.turn !== id) return;
+  var a = P(id), d = enemyOf(id);
+  if (!spend(id, 1)) return;
+  applyDamage(d, a.dmg);
+  log('🗡 Игрок ' + id + ' атакует: урон <b>' + a.dmg + '</b>', 'hit');
+  nextTurn();
+}
+
+function basicDodge(id) {
+  if (battle.over || battle.turn !== id) return;
+  if (!spend(id, 2)) return;
+  P(id).dodging = true;
+  log('💨 Игрок ' + id + ' готовится уклоняться', 'miss');
+  nextTurn();
+}
+
+function basicRest(id) {
+  if (battle.over || battle.turn !== id) return;
+  var p = P(id);
+  p.sta = Math.min(p.maxsta, p.sta + 3);
+  log('😮‍💨 Игрок ' + id + ' восстанавливает 3 STA');
+  nextTurn();
+}
+
+function useAbility(id) {
+  if (battle.over || battle.turn !== id) return;
+  var a = P(id), d = enemyOf(id);
+  var base = a.dmg;
+  var name = character.chosenAbility;
+
+  if (name === 'strongHit') {
+    var dmg = Math.floor(base * 1.5);
+    applyDamage(d, dmg);
+    log('💪 Игрок ' + id + ' — Сильный удар: урон <b>' + dmg + '</b>', 'crit');
+  } else if (name === 'spinKick') {
+    applyDamage(d, base);
+    d.frozen = true;
+    log('🦵 Игрок ' + id + ' — Удар с разворота: урон <b>' + base + '</b>, противник дезориентирован', 'crit');
+  } else if (name === 'throwRock') {
+    applyDamage(d, base);
+    log('🪨 Игрок ' + id + ' — Бросок: урон <b>' + base + '</b>', 'hit');
+  } else if (name === 'combo') {
+    var total = 0;
+    for (var k = 0; k < 3; k++) {
+      var part = Math.floor(base * 0.5);
+      applyDamage(d, part);
+      total += part;
+    }
+    log('⚡ Игрок ' + id + ' — Серия из 3 ударов: урон <b>' + total + '</b>', 'crit');
+  } else if (name === 'dodgeAbility') {
+    a.dodging = true;
+    log('💨 Игрок ' + id + ' использует Уклон', 'miss');
+  } else if (name === 'pierce') {
+    applyDamage(d, base);
+    log('🗡 Игрок ' + id + ' — Проникающий удар: урон <b>' + base + '</b>', 'crit');
+  } else if (name === 'fireball') {
+    applyDamage(d, base);
+    log('🔥 Игрок ' + id + ' — Огненный фаербол: урон <b>' + base + '</b>', 'fire');
+  } else if (name === 'freeze') {
+    d.frozen = true;
+    log('❄️ Игрок ' + id + ' — Заморозка! Противник пропустит ход', 'ice');
+  } else if (name === 'iceball') {
+    applyDamage(d, base);
+    log('🧊 Игрок ' + id + ' — Ледяной фаербол: урон <b>' + base + '</b>', 'ice');
+  }
+
+  nextTurn();
+}
+</script>
+</body>
+</html>
